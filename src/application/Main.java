@@ -38,7 +38,7 @@ public class Main extends Application {
 	public static Population population;
 
 	@Override
-	public void start(Stage window) throws Exception {
+	public void start(Stage window) {
 		
 		window = new Stage();
 		root = new Pane();
@@ -62,40 +62,38 @@ public class Main extends Application {
 		mutationRate.setText("Mutation Rate: " + population.getMutationRate() + "%");
 		maxFitness.setText("Max Fitness Achieved: " + Math.round(population.getMaxFitness()));
 		
-		EventHandler<ActionEvent> stepEvent = new EventHandler<ActionEvent>() {
-			
-			private int count = 0;
-			
-			@Override
-			public void handle(ActionEvent event) {
-				
-				population.runGenomes();
-				world.stepAndDisplay();
-				population.removeFailures();
-				laser.updatePosition();
-				
-				for (Player player : population.players)
-					if (laser.ifPlayerBurnt(player))
-						population.evaluateAndDeletePlayer(player);
-				
-				if (population.players.size() == 0 && this.count % 200 == 0) {
-					
-					laser.resetLaser();
-					population.resetPopulation();
-					generations.setText("Generation: " + population.getGeneration());
-					mutationRate.setText("Mutation Rate: " + population.getMutationRate() + "%");
-					maxFitness.setText("Max Fitness Achieved: " + Math.round(population.getMaxFitness()));
-					population.resetMaxFitness();
-					this.count = 0;
+		EventHandler<ActionEvent> stepEvent = new EventHandler<>() {
 
-				}
-				
-				else
-					this.count += 1;
-			
-			}
-			
-		};
+            private int count = 0;
+
+            @Override
+            public void handle(ActionEvent event) {
+
+                population.runGenomes();
+                world.stepAndDisplay();
+                population.removeFailures();
+                laser.updatePosition();
+
+                for (Player player : population.players)
+                    if (laser.ifPlayerBurnt(player))
+                        population.evaluateAndDeletePlayer(player);
+
+                if (population.players.isEmpty() && this.count % 200 == 0) {
+
+                    laser.resetLaser();
+                    population.resetPopulation();
+                    generations.setText("Generation: " + population.getGeneration());
+                    mutationRate.setText("Mutation Rate: " + population.getMutationRate() + "%");
+                    maxFitness.setText("Max Fitness Achieved: " + Math.round(population.getMaxFitness()));
+                    population.resetMaxFitness();
+                    this.count = 0;
+
+                } else
+                    this.count += 1;
+
+            }
+
+        };
 		
 		timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(world.getTimeStep()).divide(1.5), stepEvent, null, null));
 		timeline.setCycleCount(Timeline.INDEFINITE);
@@ -149,11 +147,8 @@ public class Main extends Application {
 			Object bodyA = contact.getFixtureA().getBody().getUserData();
 			Object bodyB = contact.getFixtureB().getBody().getUserData();
 			
-			if (bodyA instanceof Box && bodyB instanceof Box) {
-				
-				Box boxA = (Box) bodyA;
-				Box boxB = (Box) bodyB;
-				
+			if (bodyA instanceof Box boxA && bodyB instanceof Box boxB) {
+
 				if (boxA.getMainBody().equals(Main.world.getGroundBody()) || boxB.getMainBody().equals(Main.world.getGroundBody())) {
 					
 					if (boxA.getName().equals(Person.DoNotTouch))
